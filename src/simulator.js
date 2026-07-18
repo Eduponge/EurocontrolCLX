@@ -70,11 +70,12 @@ function aggregate(results) {
   );
 
   const flights = results.length;
+  const round2 = (value) => Math.round(value * 100) / 100;
   return {
     flights,
-    avgAtfmDelayMin: Number((totals.atfmDelayMin / flights).toFixed(2)),
-    avgDepartureDelayMin: Number((totals.departureDelayMin / flights).toFixed(2)),
-    avgCtotShiftMin: Number((totals.ctotShiftMin / flights).toFixed(2)),
+    avgAtfmDelayMin: round2(totals.atfmDelayMin / flights),
+    avgDepartureDelayMin: round2(totals.departureDelayMin / flights),
+    avgCtotShiftMin: round2(totals.ctotShiftMin / flights),
     slotMissCount: totals.slotMissCount,
     revisionCount: totals.revisionCount,
   };
