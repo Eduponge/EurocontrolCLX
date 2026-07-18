@@ -2,6 +2,8 @@
 
 MVP analítico para simular estratégias de ajuste de EOBT e comparar impacto em CTOT/atrasos com dados históricos.
 
+> Nota de linguagem: este repositório usa documentação em Português para alinhamento com o contexto operacional local.
+
 ## Objetivo
 
 Construir um simulador **offline** para:

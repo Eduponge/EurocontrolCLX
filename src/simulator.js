@@ -18,7 +18,7 @@ function simulateFlight(flight, policyFn) {
   const atfmDelayMin = Math.max(0, ctotMin - adjustedEobtMin);
   const departureDelayMin = Math.max(0, offblockMin - flight.eobtMin);
   const ctotShiftMin = Math.abs(ctotMin - flight.initialCtotMin);
-  const slotMissCount = flight.readyMin > ctotMin + SLOT_TOLERANCE_WINDOW_MIN ? 1 : 0;
+  const slotMissCount = isSlotMissed(flight.readyMin, ctotMin) ? 1 : 0;
 
   return {
     flightId: flight.flightId,
@@ -31,6 +31,10 @@ function simulateFlight(flight, policyFn) {
     slotMissCount,
     revisionCount,
   };
+}
+
+function isSlotMissed(readyMin, ctotMin) {
+  return readyMin > ctotMin + SLOT_TOLERANCE_WINDOW_MIN;
 }
 
 function aggregate(results) {
@@ -94,6 +98,7 @@ function runSimulation(flights, selectedPolicies) {
 
 module.exports = {
   estimateCtotMin,
+  isSlotMissed,
   simulateFlight,
   runSimulation,
 };

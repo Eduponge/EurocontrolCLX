@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { runSimulation } = require("../src/simulator");
+const { runSimulation, isSlotMissed } = require("../src/simulator");
 
 const flights = [
   {
@@ -40,4 +40,10 @@ test("summaries expose aggregated metrics", () => {
   assert.equal(typeof summary.avgAtfmDelayMin, "number");
   assert.equal(typeof summary.avgDepartureDelayMin, "number");
   assert.equal(typeof summary.avgCtotShiftMin, "number");
+});
+
+test("slot miss logic marks only late readiness beyond tolerance", () => {
+  assert.equal(isSlotMissed(641, 630), true);
+  assert.equal(isSlotMissed(640, 630), false);
+  assert.equal(isSlotMissed(625, 630), false);
 });

@@ -8,8 +8,8 @@ function keepOriginalEobt(flight) {
 }
 
 function proactiveRiskUpdate(flight) {
-  const riskDelay = flight.readyMin - flight.eobtMin;
-  if (riskDelay <= PROACTIVE_RISK_DELAY_THRESHOLD_MIN) {
+  const readinessGapMin = flight.readyMin - flight.eobtMin;
+  if (readinessGapMin <= PROACTIVE_RISK_DELAY_THRESHOLD_MIN) {
     return { adjustedEobtMin: flight.eobtMin, revisionCount: 0 };
   }
 
