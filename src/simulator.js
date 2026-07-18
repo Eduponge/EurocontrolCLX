@@ -7,6 +7,8 @@ function estimateCtotMin(flight, adjustedEobtMin) {
   const regulationPenalty = Math.round(
     (flight.regulationSeverity || 0) * MAX_REGULATION_PENALTY_MIN
   );
+  // In this simplified model, CTOT cannot be earlier than the original assigned CTOT,
+  // and may move later when adjusted EOBT plus regulation pressure requires it.
   return Math.max(flight.initialCtotMin, adjustedEobtMin + regulationPenalty);
 }
 

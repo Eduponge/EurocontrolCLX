@@ -14,7 +14,14 @@ function loadFlights(filePath) {
 
 function main() {
   const input = process.argv[2] || "data/sample_flights.json";
-  const flights = loadFlights(input);
+  let flights;
+  try {
+    flights = loadFlights(input);
+  } catch (error) {
+    console.error(`Failed to load flights from ${path.resolve(input)}: ${error.message}`);
+    process.exit(1);
+  }
+
   const result = runSimulation(flights);
 
   console.log(`Loaded ${flights.length} flights from ${path.resolve(input)}`);

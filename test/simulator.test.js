@@ -26,7 +26,7 @@ test("simulation returns all required policies", () => {
   assert.ok(result.stability_postpone);
 });
 
-test("proactive strategy reduces slot misses in delayed scenario", () => {
+test("proactive strategy does not worsen slot misses for sample dataset", () => {
   const result = runSimulation(flights);
   assert.ok(
     result.proactive_risk_update.summary.slotMissCount <=
