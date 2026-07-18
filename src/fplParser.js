@@ -29,7 +29,7 @@ function hhmmToMin(hhmm) {
 
 function minToHHMM(min) {
   const h = Math.floor(min / 60) % 24;
-  const m = Math.abs(min) % 60;
+  const m = min % 60;
   return String(h).padStart(2, "0") + String(m).padStart(2, "0");
 }
 
@@ -211,7 +211,9 @@ function planCtot(parsedFpl, ctotMin) {
         label: "Stability (Rounded)",
         eobtMin: stabilityEobt,
         revisionMin: stabilityEobt - eobtMin,
-        note: `Revise EOBT to ${fmt(stabilityEobt)} (nearest 5-min boundary ≤ slot open). Gain ${stabilityEobt - eobtMin} min of preparation time.`,
+        note: stabilityEobt === eobtMin
+          ? `EOBT ${fmt(eobtMin)} already on a 5-min boundary — no revision needed.`
+          : `Revise EOBT to ${fmt(stabilityEobt)} (next 5-min boundary ≥ slot open). Gain ${stabilityEobt - eobtMin} min of preparation time.`,
       },
     },
   };
