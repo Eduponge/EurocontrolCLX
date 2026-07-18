@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EurocontrolCLX — EOBT/CTOT Simulator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 1.5rem;
+    }
+
+    h1 { color: #38bdf8; margin-bottom: 0.25rem; }
+    h2 { color: #94a3b8; font-size: 1rem; font-weight: 400; margin-top: 0; }
+    h3 { color: #7dd3fc; margin: 1.5rem 0 0.5rem; }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    label { display: block; margin-bottom: 0.4rem; color: #94a3b8; font-size: 0.875rem; }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+    }
+
+    textarea:focus { outline: 2px solid #38bdf8; border-color: transparent; }
+
+    .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 0.75rem; }
+
+    button {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.6rem 1.4rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #0369a1; }
+    button.secondary {
+      background: #334155;
+      color: #94a3b8;
+    }
+    button.secondary:hover { background: #475569; color: #e2e8f0; }
+
+    input[type="file"] { display: none; }
+
+    .error {
+      background: #450a0a;
+      border: 1px solid #991b1b;
+      color: #fca5a5;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead th {
+      background: #0f172a;
+      color: #7dd3fc;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid #334155;
+    }
+
+    tbody tr:nth-child(even) { background: #0f172a; }
+    tbody tr:hover { background: #1e3a5f; }
+
+    tbody td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-blue  { background: #1e3a5f; color: #7dd3fc; }
+    .badge-green { background: #14532d; color: #86efac; }
+    .badge-amber { background: #451a03; color: #fcd34d; }
+
+    details summary { cursor: pointer; color: #7dd3fc; margin-top: 0.5rem; }
+    details summary:hover { color: #38bdf8; }
+
+    #results { display: none; }
+
+    .policy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .policy-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+
+    .policy-card h4 { color: #38bdf8; margin: 0 0 0.75rem; font-size: 0.9rem; }
+
+    .metric { display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-size: 0.825rem; }
+    .metric-label { color: #94a3b8; }
+    .metric-value { color: #e2e8f0; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<h1>✈ EurocontrolCLX Simulator</h1>
+<h2>EOBT / CTOT delay strategy comparison — runs entirely in your browser</h2>
+
+<div class="card">
+  <label for="flightInput">Flight data (JSON array)</label>
+  <textarea id="flightInput"></textarea>
+  <div class="row">
+    <button onclick="runSim()">▶ Run Simulation</button>
+    <button class="secondary" onclick="loadSample()">↺ Reset to sample data</button>
+    <button class="secondary" onclick="document.getElementById('fileInput').click()">📂 Load JSON file…</button>
+    <input type="file" id="fileInput" accept=".json,application/json" onchange="loadFile(event)" />
+  </div>
+</div>
+
+<div id="errorBox" style="display:none"></div>
+<div id="results">
+  <div class="card">
+    <h3>Policy Summary</h3>
+    <div id="policyGrid" class="policy-grid"></div>
+    <details>
+      <summary>Show comparison table</summary>
+      <div style="overflow-x:auto; margin-top:0.75rem">
+        <table id="summaryTable"></table>
+      </div>
+    </details>
+  </div>
+  <div class="card">
+    <h3>Per-flight Details</h3>
+    <label for="policySelect">Policy</label>
+    <select id="policySelect" onchange="renderDetails()"
+      style="background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:0.4rem;padding:0.4rem 0.75rem;font-size:0.875rem;">
+    </select>
+    <div style="overflow-x:auto; margin-top:0.75rem">
+      <table id="detailTable"></table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── policies ──────────────────────────────────────────────────────────────
+const PROACTIVE_RISK_DELAY_THRESHOLD_MIN = 15;
+const PROACTIVE_READY_BUFFER_MIN = 5;
+const STABILITY_READY_BUFFER_MIN = 10;
+const STABILITY_ROUNDING_STEP_MIN = 5;
+
+function keepOriginalEobt(flight) {
+  return { adjustedEobtMin: flight.eobtMin, revisionCount: 0 };
+}
+
+function proactiveRiskUpdate(flight) {
+  const readinessGapMin = flight.readyMin - flight.eobtMin;
+  if (readinessGapMin <= PROACTIVE_RISK_DELAY_THRESHOLD_MIN) {
+    return { adjustedEobtMin: flight.eobtMin, revisionCount: 0 };
+  }
+  return { adjustedEobtMin: flight.readyMin - PROACTIVE_READY_BUFFER_MIN, revisionCount: 1 };
+}
+
+function stabilityPostpone(flight) {
+  const target = Math.max(flight.eobtMin, flight.readyMin - STABILITY_READY_BUFFER_MIN);
+  const rounded = Math.ceil(target / STABILITY_ROUNDING_STEP_MIN) * STABILITY_ROUNDING_STEP_MIN;
+  const changed = rounded !== flight.eobtMin;
+  return { adjustedEobtMin: rounded, revisionCount: changed ? 1 : 0 };
+}
+
+// ─── simulator ─────────────────────────────────────────────────────────────
+const MAX_REGULATION_PENALTY_MIN = 15;
+const SLOT_TOLERANCE_WINDOW_MIN = 10;
+
+function estimateCtotMin(flight, adjustedEobtMin) {
+  const regulationPenalty = Math.round((flight.regulationSeverity || 0) * MAX_REGULATION_PENALTY_MIN);
+  return Math.max(flight.initialCtotMin, adjustedEobtMin + regulationPenalty);
+}
+
+function isSlotMissed(readyMin, ctotMin) {
+  return readyMin > ctotMin + SLOT_TOLERANCE_WINDOW_MIN;
+}
+
+function simulateFlight(flight, policyFn) {
+  const { adjustedEobtMin, revisionCount } = policyFn(flight);
+  const ctotMin = estimateCtotMin(flight, adjustedEobtMin);
+  const offblockMin = Math.max(flight.readyMin, ctotMin);
+  const atfmDelayMin = Math.max(0, ctotMin - adjustedEobtMin);
+  const departureDelayMin = Math.max(0, offblockMin - flight.eobtMin);
+  const ctotShiftMin = Math.abs(ctotMin - flight.initialCtotMin);
+  const slotMissCount = isSlotMissed(flight.readyMin, ctotMin) ? 1 : 0;
+  return { flightId: flight.flightId, adjustedEobtMin, ctotMin, offblockMin,
+           atfmDelayMin, departureDelayMin, ctotShiftMin, slotMissCount, revisionCount };
+}
+
+function aggregate(results) {
+  if (results.length === 0) {
+    return { flights: 0, avgAtfmDelayMin: 0, avgDepartureDelayMin: 0,
+             avgCtotShiftMin: 0, slotMissCount: 0, revisionCount: 0 };
+  }
+  const totals = results.reduce((acc, r) => {
+    acc.atfmDelayMin      += r.atfmDelayMin;
+    acc.departureDelayMin += r.departureDelayMin;
+    acc.ctotShiftMin      += r.ctotShiftMin;
+    acc.slotMissCount    += r.slotMissCount;
+    acc.revisionCount    += r.revisionCount;
+    return acc;
+  }, { atfmDelayMin:0, departureDelayMin:0, ctotShiftMin:0, slotMissCount:0, revisionCount:0 });
+  const n = results.length;
+  const round2 = v => Math.round(v * 100) / 100;
+  return { flights: n,
+    avgAtfmDelayMin:      round2(totals.atfmDelayMin / n),
+    avgDepartureDelayMin: round2(totals.departureDelayMin / n),
+    avgCtotShiftMin:      round2(totals.ctotShiftMin / n),
+    slotMissCount:        totals.slotMissCount,
+    revisionCount:        totals.revisionCount };
+}
+
+const POLICIES = {
+  keep_original_eobt:    keepOriginalEobt,
+  proactive_risk_update: proactiveRiskUpdate,
+  stability_postpone:    stabilityPostpone,
+};
+
+function runSimulation(flights) {
+  const output = {};
+  for (const [name, fn] of Object.entries(POLICIES)) {
+    const details = flights.map(f => simulateFlight(f, fn));
+    output[name] = { summary: aggregate(details), details };
+  }
+  return output;
+}
+
+// ─── sample data ───────────────────────────────────────────────────────────
+const SAMPLE = [
+  { flightId:"CV-401", eobtMin:540, readyMin:552, initialCtotMin:555, regulationSeverity:0.5 },
+  { flightId:"CV-742", eobtMin:600, readyMin:630, initialCtotMin:615, regulationSeverity:0.8 },
+  { flightId:"CV-918", eobtMin:690, readyMin:700, initialCtotMin:700, regulationSeverity:0.4 },
+  { flightId:"CV-125", eobtMin:780, readyMin:820, initialCtotMin:795, regulationSeverity:0.9 },
+  { flightId:"CV-300", eobtMin:840, readyMin:848, initialCtotMin:850, regulationSeverity:0.3 },
+];
+
+// ─── helpers ───────────────────────────────────────────────────────────────
+function minToHHMM(m) {
+  const h = Math.floor(m / 60) % 24;
+  const mm = String(m % 60).padStart(2, '0');
+  return `${String(h).padStart(2,'0')}:${mm}`;
+}
+
+function fmt(v, unit = '') {
+  return v + (unit ? '\u202F' + unit : '');
+}
+
+function policyLabel(key) {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// ─── state ─────────────────────────────────────────────────────────────────
+let lastResult = null;
+
+// ─── UI helpers ────────────────────────────────────────────────────────────
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.style.display = 'block';
+  el.className = 'error';
+  el.textContent = '⚠ ' + msg;
+}
+
+function clearError() {
+  const el = document.getElementById('errorBox');
+  el.style.display = 'none';
+}
+
+function loadSample() {
+  document.getElementById('flightInput').value = JSON.stringify(SAMPLE, null, 2);
+}
+
+function loadFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('flightInput').value = e.target.result;
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ─── main run ──────────────────────────────────────────────────────────────
+function runSim() {
+  clearError();
+  let flights;
+  try {
+    flights = JSON.parse(document.getElementById('flightInput').value);
+  } catch (e) {
+    showError('Invalid JSON: ' + e.message);
+    return;
+  }
+  if (!Array.isArray(flights) || flights.length === 0) {
+    showError('Input must be a non-empty JSON array of flights.');
+    return;
+  }
+  const required = ['flightId','eobtMin','readyMin','initialCtotMin','regulationSeverity'];
+  for (const f of flights) {
+    for (const k of required) {
+      if (f[k] === undefined) {
+        showError(`Flight "${f.flightId || '?'}" is missing field "${k}".`);
+        return;
+      }
+    }
+  }
+
+  lastResult = runSimulation(flights);
+  renderResults();
+}
+
+// ─── render ────────────────────────────────────────────────────────────────
+function renderResults() {
+  document.getElementById('results').style.display = 'block';
+  renderPolicyGrid();
+  renderSummaryTable();
+  renderPolicySelect();
+  renderDetails();
+}
+
+function renderPolicyGrid() {
+  const grid = document.getElementById('policyGrid');
+  grid.innerHTML = '';
+  for (const [key, { summary: s }] of Object.entries(lastResult)) {
+    const card = document.createElement('div');
+    card.className = 'policy-card';
+    card.innerHTML = `
+      <h4>${policyLabel(key)}</h4>
+      <div class="metric"><span class="metric-label">Flights</span><span class="metric-value">${s.flights}</span></div>
+      <div class="metric"><span class="metric-label">Avg ATFM Delay</span><span class="metric-value">${s.avgAtfmDelayMin} min</span></div>
+      <div class="metric"><span class="metric-label">Avg Departure Delay</span><span class="metric-value">${s.avgDepartureDelayMin} min</span></div>
+      <div class="metric"><span class="metric-label">Avg CTOT Shift</span><span class="metric-value">${s.avgCtotShiftMin} min</span></div>
+      <div class="metric"><span class="metric-label">Slot Misses</span><span class="metric-value">${s.slotMissCount}</span></div>
+      <div class="metric"><span class="metric-label">Revisions</span><span class="metric-value">${s.revisionCount}</span></div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+function renderSummaryTable() {
+  const table = document.getElementById('summaryTable');
+  const headers = ['Policy','Flights','Avg ATFM Delay (min)','Avg Dep. Delay (min)','Avg CTOT Shift (min)','Slot Misses','Revisions'];
+  let html = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+  for (const [key, { summary: s }] of Object.entries(lastResult)) {
+    html += `<tr>
+      <td><span class="badge badge-blue">${policyLabel(key)}</span></td>
+      <td>${s.flights}</td>
+      <td>${s.avgAtfmDelayMin}</td>
+      <td>${s.avgDepartureDelayMin}</td>
+      <td>${s.avgCtotShiftMin}</td>
+      <td>${s.slotMissCount}</td>
+      <td>${s.revisionCount}</td>
+    </tr>`;
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function renderPolicySelect() {
+  const sel = document.getElementById('policySelect');
+  sel.innerHTML = '';
+  for (const key of Object.keys(lastResult)) {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = policyLabel(key);
+    sel.appendChild(opt);
+  }
+}
+
+function renderDetails() {
+  const key = document.getElementById('policySelect').value;
+  if (!lastResult || !lastResult[key]) return;
+  const rows = lastResult[key].details;
+  const headers = ['Flight ID','Adj. EOBT','CTOT','Off-block','ATFM Delay (min)','Dep. Delay (min)','CTOT Shift (min)','Slot Miss','Revisions'];
+  let html = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+  for (const r of rows) {
+    const miss = r.slotMissCount > 0
+      ? '<span class="badge badge-amber">yes</span>'
+      : '<span class="badge badge-green">no</span>';
+    html += `<tr>
+      <td><strong>${r.flightId}</strong></td>
+      <td>${minToHHMM(r.adjustedEobtMin)}</td>
+      <td>${minToHHMM(r.ctotMin)}</td>
+      <td>${minToHHMM(r.offblockMin)}</td>
+      <td>${r.atfmDelayMin}</td>
+      <td>${r.departureDelayMin}</td>
+      <td>${r.ctotShiftMin}</td>
+      <td>${miss}</td>
+      <td>${r.revisionCount}</td>
+    </tr>`;
+  }
+  html += '</tbody>';
+  document.getElementById('detailTable').innerHTML = html;
+}
+
+// ─── init ──────────────────────────────────────────────────────────────────
+loadSample();
+</script>
+</body>
+</html>
