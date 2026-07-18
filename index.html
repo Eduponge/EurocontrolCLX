@@ -386,8 +386,8 @@ function planCtot(parsedFpl, ctotMin) {
         label: 'Stability (Rounded)',
         eobtMin: stabilityEobt,
         revisionMin: stabilityEobt - eobtMin,
-        note: stabilityEobt === eobtMin
-          ? `EOBT ${fmt(eobtMin)} already on a 5-min boundary — no revision needed.`
+        note: stabilityEobt - eobtMin === 0
+          ? `No revision needed — EOBT ${fmt(eobtMin)} is already aligned with the 5-min grid.`
           : `Revise EOBT to ${fmt(stabilityEobt)} (next 5-min boundary ≥ slot open). Gain ${stabilityEobt - eobtMin} min.`,
       },
     },
@@ -439,6 +439,10 @@ function runFplPlanner() {
   }
 
   const [ch, cm] = ctotValue.split(':').map(Number);
+  if (!Number.isFinite(ch) || !Number.isFinite(cm) || ch < 0 || ch > 23 || cm < 0 || cm > 59) {
+    showFplError('Invalid CTOT time. Please use HH:MM format (e.g. 03:15).');
+    return;
+  }
   const ctotMin = ch * 60 + cm;
 
   if (ctotMin <= parsedFpl.eobtMin) {
@@ -468,7 +472,7 @@ function renderFplResults(fpl, plan) {
 
   document.getElementById('fplInfoGrid').innerHTML = infoItems.map(([label, val]) => `
     <div class="fpl-info-item">
-      <span class="label">${escHtml(label)}</span>
+      <span class="label">${label}</span>
       <span class="value">${escHtml(val)}</span>
     </div>`).join('');
 
@@ -477,14 +481,14 @@ function renderFplResults(fpl, plan) {
 
   // Strategy table
   const headers = ['Strategy', 'Recommended EOBT', 'Revision', 'Notes'];
-  let html = '<thead><tr>' + headers.map(h => `<th>${escHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
+  let html = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
   for (const [, s] of Object.entries(plan.strategies)) {
     const revLabel = s.revisionMin === 0
       ? '<span class="badge badge-green">no change</span>'
       : `<span class="badge badge-amber">+${s.revisionMin} min</span>`;
     html += `<tr>
-      <td><span class="badge badge-sky">${escHtml(s.label)}</span></td>
-      <td><strong>${escHtml(fplMinToHHMM(s.eobtMin) + ' UTC')}</strong></td>
+      <td><span class="badge badge-sky">${s.label}</span></td>
+      <td><strong>${fplMinToHHMM(s.eobtMin)} UTC</strong></td>
       <td>${revLabel}</td>
       <td style="color:#94a3b8;font-size:0.8rem">${escHtml(s.note)}</td>
     </tr>`;

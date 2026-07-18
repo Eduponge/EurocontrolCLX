@@ -211,8 +211,8 @@ function planCtot(parsedFpl, ctotMin) {
         label: "Stability (Rounded)",
         eobtMin: stabilityEobt,
         revisionMin: stabilityEobt - eobtMin,
-        note: stabilityEobt === eobtMin
-          ? `EOBT ${fmt(eobtMin)} already on a 5-min boundary — no revision needed.`
+        note: stabilityEobt - eobtMin === 0
+          ? `No revision needed — EOBT ${fmt(eobtMin)} is already aligned with the 5-min grid.`
           : `Revise EOBT to ${fmt(stabilityEobt)} (next 5-min boundary ≥ slot open). Gain ${stabilityEobt - eobtMin} min of preparation time.`,
       },
     },
