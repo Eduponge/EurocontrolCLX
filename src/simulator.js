@@ -34,6 +34,17 @@ function simulateFlight(flight, policyFn) {
 }
 
 function aggregate(results) {
+  if (results.length === 0) {
+    return {
+      flights: 0,
+      avgAtfmDelayMin: 0,
+      avgDepartureDelayMin: 0,
+      avgCtotShiftMin: 0,
+      slotMissCount: 0,
+      revisionCount: 0,
+    };
+  }
+
   const totals = results.reduce(
     (acc, row) => {
       acc.atfmDelayMin += row.atfmDelayMin;
@@ -52,7 +63,7 @@ function aggregate(results) {
     }
   );
 
-  const flights = results.length || 1;
+  const flights = results.length;
   return {
     flights,
     avgAtfmDelayMin: Number((totals.atfmDelayMin / flights).toFixed(2)),

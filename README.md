@@ -23,7 +23,7 @@ Construir um simulador **offline** para:
   - `avgCtotShiftMin`
   - `slotMissCount`
   - `revisionCount`
-  - Dataset de exemplo: `data/sample_flights.json`.
+- Dataset de exemplo: `data/sample_flights.json`.
 
 ## Estrutura
 
