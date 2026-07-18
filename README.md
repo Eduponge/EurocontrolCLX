@@ -23,23 +23,23 @@ Construir um simulador **offline** para:
   - `avgCtotShiftMin`
   - `slotMissCount`
   - `revisionCount`
-- Dataset de exemplo: `/home/runner/work/EurocontrolCLX/EurocontrolCLX/data/sample_flights.json`.
+  - Dataset de exemplo: `data/sample_flights.json`.
 
 ## Estrutura
 
-- `/home/runner/work/EurocontrolCLX/EurocontrolCLX/src/policies.js`  
+- `src/policies.js`  
   Regras de política de ajuste de EOBT.
-- `/home/runner/work/EurocontrolCLX/EurocontrolCLX/src/simulator.js`  
+- `src/simulator.js`  
   Núcleo de simulação e agregação de métricas.
-- `/home/runner/work/EurocontrolCLX/EurocontrolCLX/src/cli.js`  
+- `src/cli.js`  
   Execução via linha de comando.
-- `/home/runner/work/EurocontrolCLX/EurocontrolCLX/test/simulator.test.js`  
+- `test/simulator.test.js`  
   Testes automatizados.
 
 ## Como executar
 
 ```bash
-cd /home/runner/work/EurocontrolCLX/EurocontrolCLX
+cd <repo-root>
 npm install
 npm test
 npm run simulate

@@ -1,7 +1,12 @@
 const policies = require("./policies");
 
+const MAX_REGULATION_PENALTY_MIN = 15;
+const SLOT_TOLERANCE_WINDOW_MIN = 10;
+
 function estimateCtotMin(flight, adjustedEobtMin) {
-  const regulationPenalty = Math.round((flight.regulationSeverity || 0) * 15);
+  const regulationPenalty = Math.round(
+    (flight.regulationSeverity || 0) * MAX_REGULATION_PENALTY_MIN
+  );
   return Math.max(flight.initialCtotMin, adjustedEobtMin + regulationPenalty);
 }
 
@@ -13,7 +18,7 @@ function simulateFlight(flight, policyFn) {
   const atfmDelayMin = Math.max(0, ctotMin - adjustedEobtMin);
   const departureDelayMin = Math.max(0, offblockMin - flight.eobtMin);
   const ctotShiftMin = Math.abs(ctotMin - flight.initialCtotMin);
-  const slotMissCount = flight.readyMin > ctotMin + 10 ? 1 : 0;
+  const slotMissCount = flight.readyMin > ctotMin + SLOT_TOLERANCE_WINDOW_MIN ? 1 : 0;
 
   return {
     flightId: flight.flightId,
