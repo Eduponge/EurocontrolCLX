@@ -232,19 +232,19 @@ function aggregate(results) {
              avgCtotShiftMin: 0, slotMissCount: 0, revisionCount: 0 };
   }
   const totals = results.reduce((acc, r) => {
-    acc.atfmDelayMin     += r.atfmDelayMin;
-    acc.departureDelayMin+= r.departureDelayMin;
-    acc.ctotShiftMin     += r.ctotShiftMin;
+    acc.atfmDelayMin      += r.atfmDelayMin;
+    acc.departureDelayMin += r.departureDelayMin;
+    acc.ctotShiftMin      += r.ctotShiftMin;
     acc.slotMissCount    += r.slotMissCount;
     acc.revisionCount    += r.revisionCount;
     return acc;
   }, { atfmDelayMin:0, departureDelayMin:0, ctotShiftMin:0, slotMissCount:0, revisionCount:0 });
   const n = results.length;
-  const r2 = v => Math.round(v * 100) / 100;
+  const round2 = v => Math.round(v * 100) / 100;
   return { flights: n,
-    avgAtfmDelayMin:      r2(totals.atfmDelayMin / n),
-    avgDepartureDelayMin: r2(totals.departureDelayMin / n),
-    avgCtotShiftMin:      r2(totals.ctotShiftMin / n),
+    avgAtfmDelayMin:      round2(totals.atfmDelayMin / n),
+    avgDepartureDelayMin: round2(totals.departureDelayMin / n),
+    avgCtotShiftMin:      round2(totals.ctotShiftMin / n),
     slotMissCount:        totals.slotMissCount,
     revisionCount:        totals.revisionCount };
 }
