@@ -1,0 +1,37 @@
+[
+  {
+    "flightId": "CV-401",
+    "eobtMin": 540,
+    "readyMin": 552,
+    "initialCtotMin": 555,
+    "regulationSeverity": 0.5
+  },
+  {
+    "flightId": "CV-742",
+    "eobtMin": 600,
+    "readyMin": 630,
+    "initialCtotMin": 615,
+    "regulationSeverity": 0.8
+  },
+  {
+    "flightId": "CV-918",
+    "eobtMin": 690,
+    "readyMin": 700,
+    "initialCtotMin": 700,
+    "regulationSeverity": 0.4
+  },
+  {
+    "flightId": "CV-125",
+    "eobtMin": 780,
+    "readyMin": 820,
+    "initialCtotMin": 795,
+    "regulationSeverity": 0.9
+  },
+  {
+    "flightId": "CV-300",
+    "eobtMin": 840,
+    "readyMin": 848,
+    "initialCtotMin": 850,
+    "regulationSeverity": 0.3
+  }
+]

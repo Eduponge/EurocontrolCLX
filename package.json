@@ -1,10 +1,11 @@
 {
   "name": "eurocontrolclx",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Offline simulator for EOBT/CTOT delay strategy comparison",
+  "main": "src/cli.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "simulate": "node src/cli.js data/sample_flights.json",
+    "test": "node --test"
   },
   "repository": {
     "type": "git",
